@@ -1,0 +1,100 @@
+
+services:
+  x-workers_cfg: &workers_cfg
+    build: .
+    environment:
+      RABBITMQ_HOST: rabbit_queue
+      QDRANT_HOST: qdrant_db
+      DB_HOST: mongo_db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      PYTHONPATH: /app
+    networks:
+      - linker_net
+    volumes:
+      - ./ml_models:/app/ml_models
+      - .:/app
+    depends_on:
+      mongo_db:
+        condition: service_healthy
+
+      qdrant_db:
+        condition: service_healthy
+
+      rabbit_queue:
+        condition: service_healthy
+
+  mongo_db:
+    image: mongo:7.0
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_linker_data:/data/db
+    networks:
+      - linker_net
+    healthcheck:
+      test: "mongosh --quiet --eval 'db.adminCommand(\"ping\")'"
+      retries: 3
+      timeout: 10s
+      start_period: 15s
+
+
+  rabbit_queue:
+    image: rabbitmq:3-management
+    container_name: rabbit_queue
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbit_linker_data:/var/lib/rabbitmq
+    networks:
+      - linker_net
+    healthcheck:
+      test: "rabbitmq-diagnostics -q check_port_connectivity"
+      retries: 3
+      timeout: 10s
+      start_period: 15s
+
+  qdrant_db:
+    image: qdrant/qdrant:latest
+    container_name: qdrant_db
+    ports:
+      - 6333:6333
+      - 6334:6334
+    volumes:
+      - qdrant_linker_data:/qdrant/storage
+    restart: unless-stopped
+    networks:
+      - linker_net
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/6333'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+
+  vectorizer:
+    command: python -m src.workers.vectorizer
+    <<: *workers_cfg
+    
+  linker:
+    command: python -m src.workers.linker
+    <<: *workers_cfg
+
+volumes:
+  mongo_linker_data:
+  qdrant_linker_data:
+  rabbit_linker_data:
+networks:
+  linker_net:
+    driver: bridge
