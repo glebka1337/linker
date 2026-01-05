@@ -89,7 +89,7 @@ class MongoRepo(Generic[DocType]):
                 ]
     async def create(
         self,
-        note: NoteEntity
+        note_data: NoteEntity
     ) -> NoteEntity:
         async with safe_exec(
             err_mapping=self.err_mapping,
@@ -97,7 +97,7 @@ class MongoRepo(Generic[DocType]):
             throw=True
         ):
             new_doc = self._to_doc(
-                note
+                note_data
             )
             
             await new_doc.insert()

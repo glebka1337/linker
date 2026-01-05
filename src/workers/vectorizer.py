@@ -1,10 +1,10 @@
+from src.core.exceptions import NoteFoundError
 from src.core.resources import Resources
-from src.interfaces.model_service_interface import ModelServiceInterface
-from src.interfaces.note_repo_interface import NoteRepo
 from src.repos.mongo_repo import MongoRepo
 from src.repos.vector_repo import QudrantVectorRepo
+from src.services.queue_service_02 import RabbitQueueService
 from src.workers.base import BaseWorker
-from src.schemas.note import VectorizeTask
+from src.schemas.note import LinkTask, VectorizeTask
 from src.core.config import settings
 from src.services.ml_service import MLService
 from src.models.note import Note as NoteDoc
@@ -21,45 +21,68 @@ class VectorWorker(BaseWorker[VectorizeTask]):
         self
     ) -> None:
         super().__init__()
-        self.model_service = MLService(
+        self.ml_vectorize_service = MLService(
             model_name=settings.ML_MODEL_NAME,
             model_path=settings.ML_MODEL_PATH
         )
-        self.note_repo = MongoRepo(model=NoteDoc)
+        
+    async def setup(self, res: Resources) -> None:
+        # we need to get access to notes, so we will define note repo
+        await self.ml_vectorize_service.init_model()
+        self.note_repo = MongoRepo(
+            NoteDoc
+        )
+        
+        # vector repo
+        self.vector_repo = QudrantVectorRepo(
+            client=res.qdrant_client,
+            logger=self.logger
+        )
+        
+        # queue to send a link task
+        self.queue_service = RabbitQueueService(conn=res.rabbitmq_conn)
+        self.logger.info("All repositories and services for vectorizer has been created.")
         
     async def run(self):
-        await self.model_service.init_model()
         return await super().run()
     
     async def process_task(
         self,
         task: VectorizeTask,
-        resources: Resources
     ):
-        # we need to get note from mongo
+        # get a note text
+        
         note = await self.note_repo.get_by_uuid(
-            note_uuid=task.note_uuid
+            task.note_uuid
         )
         
         if not note:
-            return
+            raise NoteFoundError(f"Note not found: uuid={task.note_uuid}")
         
-        vec = await self.model_service.vectorize(
+        self.logger.info(f"Turn note {task.note_uuid} to vector...")
+        
+        vec = await self.ml_vectorize_service.vectorize(
             text=note.text
         )
         
-        vec_repo = QudrantVectorRepo(
-            client=resources.qdrant_client,
-            collection_name=settings.QDRANT_COLLECTION_NAME,
-            logger=logger
-        )
+        # upsert created vector
         
-        await vec_repo.upsert(
-            note_uuid=note.uuid,
+        await self.vector_repo.upsert(
+            note_uuid=task.note_uuid,
             vector=vec
         )
         
+        # create a task
+        await self.queue_service.send_msg(
+            msg=LinkTask(
+                note_uuid=task.note_uuid,
+                vector=vec
+            ),
+            queue_name=settings.LINK_TASK_QUEUE_NAME
+        )
         
+        self.logger.info(f"Link task has been created and sent to the queue.")
+        return
         
         
     

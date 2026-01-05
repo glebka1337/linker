@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Resources:
     qdrant_client: AsyncQdrantClient
     mongo_client: AsyncIOMotorClient
-    rabbitmq_client: AbstractRobustConnection
+    rabbitmq_conn: AbstractRobustConnection
 
 @asynccontextmanager
 async def app_resource_manager():
@@ -31,7 +31,7 @@ async def app_resource_manager():
         yield Resources(
             qdrant_client=qdrant,
             mongo_client=mongo,
-            rabbitmq_client=rabbitmq
+            rabbitmq_conn=rabbitmq
         )
     logger.info("Closing all possible connections...")
     
