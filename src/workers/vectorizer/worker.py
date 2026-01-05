@@ -1,7 +1,7 @@
 from src.core.exceptions import NoteFoundError
 from src.core.resources import Resources
 from src.repos.mongo_repo import MongoRepo
-from src.repos.vector_repo import QudrantVectorRepo
+from src.repos.vector_repo import QdrantVectorRepo
 from src.services.queue_service_02 import RabbitQueueService
 from src.workers.base import BaseWorker
 from src.schemas.note import LinkTask, VectorizeTask
@@ -34,9 +34,8 @@ class VectorWorker(BaseWorker[VectorizeTask]):
         )
         
         # vector repo
-        self.vector_repo = QudrantVectorRepo(
+        self.vector_repo = QdrantVectorRepo(
             client=res.qdrant_client,
-            logger=self.logger
         )
         
         # queue to send a link task

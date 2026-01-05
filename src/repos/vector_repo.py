@@ -12,12 +12,13 @@ from src.interfaces.vector_repo_interface import VectorSearchResult
 from src.utils.safe_exec import ErrMappingType, safe_exec
 import logging
 
-class QudrantVectorRepo:    
+logger = logging.getLogger(__name__)
+
+class QdrantVectorRepo:    
     
     def __init__(
         self,
         client: AsyncQdrantClient,
-        logger: logging.Logger,
         collection_name: str = settings.QDRANT_COLLECTION_NAME,
     ) -> None:
         self.client = client
