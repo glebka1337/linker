@@ -1,18 +1,14 @@
+# src/workers/vectorizer/worker.py
 from src.core.exceptions import NoteFoundError
-from src.core.resources import Resources
-from src.repos.mongo_repo import MongoRepo
-from src.repos.vector_repo import QdrantVectorRepo
-from src.services.queue_service_02 import RabbitQueueService
 from src.workers.base import BaseWorker
 from src.schemas.note import LinkTask, VectorizeTask
 from src.core.config import settings
-from src.services.ml_service import MLService
-from src.models.note import Note as NoteDoc
 import logging
+from src.workers.vectorizer.deps import VectorWorkerDeps, assemble_vectorizer
 
 logger = logging.getLogger(__name__)
 
-class VectorWorker(BaseWorker[VectorizeTask]):
+class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
     
     task_schema = VectorizeTask
     queue_name = settings.VECTORIZE_TASK_QUEUE_NAME
@@ -20,38 +16,20 @@ class VectorWorker(BaseWorker[VectorizeTask]):
     def __init__(
         self
     ) -> None:
-        super().__init__()
-        self.ml_vectorize_service = MLService(
-            model_name=settings.ML_MODEL_NAME,
-            model_path=settings.ML_MODEL_PATH
-        )
+        super().__init__(assembler_funk=assemble_vectorizer)
         
-    async def setup(self, res: Resources) -> None:
-        # we need to get access to notes, so we will define note repo
-        await self.ml_vectorize_service.init_model()
-        self.note_repo = MongoRepo(
-            NoteDoc
-        )
-        
-        # vector repo
-        self.vector_repo = QdrantVectorRepo(
-            client=res.qdrant_client,
-        )
-        
-        # queue to send a link task
-        self.queue_service = RabbitQueueService(conn=res.rabbitmq_conn)
-        self.logger.info("All repositories and services for vectorizer has been created.")
-        
-    async def run(self):
-        return await super().run()
-    
     async def process_task(
         self,
         task: VectorizeTask,
     ):
         # get a note text
+        if not self.deps:
+            msg = f"Dependencies were not assembled for class: {self.__class__.__name__}!"
+            self.logger.error(msg)
+            raise RuntimeError(msg)
         
-        note = await self.note_repo.get_by_uuid(
+        
+        note = await self.deps.note_repo.get_by_uuid(
             task.note_uuid
         )
         
@@ -60,19 +38,19 @@ class VectorWorker(BaseWorker[VectorizeTask]):
         
         self.logger.info(f"Turn note {task.note_uuid} to vector...")
         
-        vec = await self.ml_vectorize_service.vectorize(
+        vec = await self.deps.ml_service.vectorize(
             text=note.text
         )
         
         # upsert created vector
         
-        await self.vector_repo.upsert(
+        await self.deps.vector_repo.upsert(
             note_uuid=task.note_uuid,
             vector=vec
         )
         
         # create a task
-        await self.queue_service.send_msg(
+        await self.deps.queue_service.send_msg(
             msg=LinkTask(
                 note_uuid=task.note_uuid,
                 vector=vec

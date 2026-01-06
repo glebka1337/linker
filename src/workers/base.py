@@ -1,18 +1,30 @@
+# src/workers/base.py
 from abc import ABC, abstractmethod
 import logging
-from typing import TypeVar, Generic, Type
+from typing import Awaitable, Callable, Protocol, TypeVar, Generic, Type
 from pydantic import BaseModel
 from src.core.resources import Resources, app_resource_manager
 
+
+DepsType = TypeVar("DepsType", covariant=True)
 TaskSchemaType = TypeVar("TaskSchemaType", bound=BaseModel)
 
-class BaseWorker(ABC, Generic[TaskSchemaType]):
+AssemblerFunc = Callable[[Resources], Awaitable[DepsType]]
+
+class BaseWorker(ABC, Generic[TaskSchemaType, DepsType]):
     
     queue_name: str
     task_schema: Type[TaskSchemaType]
     
-    def __init__(self) -> None:
-        self.logger = logging.getLogger(self.__class__.__name__)
+    def __init__(
+        self,
+        assembler_funk: AssemblerFunc
+    ) -> None:
+        self.logger = logging.getLogger(
+            self.__class__.__name__
+        )
+        self.assembler_funk = assembler_funk
+        self.deps: DepsType | None = None
         
     @abstractmethod
     async def process_task(
@@ -20,13 +32,15 @@ class BaseWorker(ABC, Generic[TaskSchemaType]):
         task: TaskSchemaType
     ): ...
     
-    @abstractmethod
     async def setup(
         self,
         res: Resources
     ):
-        pass
-    
+        self.logger.info(f"Start assembling deps...")
+        self.deps = await self.assembler_funk(res)
+        
+        self.logger.info(f"Ended succesfully")
+        
     async def run(
         self
     ):

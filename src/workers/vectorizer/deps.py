@@ -16,38 +16,47 @@ import logging
 logger = logging.getLogger(__name__)
 
 @dataclass
-class VectorizerDeps:
+class VectorWorkerDeps:
   note_repo: NoteRepo
   vector_repo: NoteVectorRepo
   queue_service: QueueService
   ml_service: ModelServiceInterface
 
 
-class VectorWorkerAssembler:
-    async def assemble(
-        self, resources: Resources
-    ) -> VectorizerDeps: 
-        logger.info(f"Assembling all dependencies for vectorize worker")
-        
-        note_repo = MongoRepo(
-            NoteDoc
-        )
-        
-        vector_repo = QdrantVectorRepo(
-            client=resources.qdrant_client
-        )
-        
-        queue_service = RabbitQueueService(conn=resources.rabbitmq_conn)
-        
-        ml_service = MLService(
-            model_name=settings.ML_MODEL_NAME,
-            model_path=settings.ML_MODEL_PATH
-        )
-        
-        return VectorizerDeps(
-            note_repo=note_repo,
-            vector_repo=vector_repo,
-            queue_service=queue_service,
-            ml_service=ml_service
-        )
-        
+
+async def assemble_vectorizer(
+    resources: Resources
+) -> VectorWorkerDeps: 
+    """
+    Function to generate a dependecies for a VectorWorker
+
+    Args:
+        resources (Resources): _description_
+
+    Returns:
+        VectorizerDeps: _description_
+    """
+    logger.info(f"Assembling all dependencies for vectorize worker")
+    
+    note_repo = MongoRepo(
+        NoteDoc
+    )
+    
+    vector_repo = QdrantVectorRepo(
+        client=resources.qdrant_client
+    )
+    
+    queue_service = RabbitQueueService(conn=resources.rabbitmq_conn)
+    
+    ml_service = MLService(
+        model_name=settings.ML_MODEL_NAME,
+        model_path=settings.ML_MODEL_PATH
+    )
+    
+    return VectorWorkerDeps(
+        note_repo=note_repo,
+        vector_repo=vector_repo,
+        queue_service=queue_service,
+        ml_service=ml_service
+    )
+    
