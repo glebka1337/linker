@@ -11,8 +11,8 @@ class NoteEntity(pydantic.BaseModel):
     created_at: datetime = pydantic.Field(
         default_factory=lambda: datetime.now(tz=timezone.utc)
     )
-    related_notes: List['RelatedNotEntity'] = pydantic.Field(default_factory=list)
+    related_notes: List['RelatedNoteEntity'] = pydantic.Field(default_factory=list)
 
-class RelatedNotEntity(pydantic.BaseModel):
+class RelatedNoteEntity(pydantic.BaseModel):
     note_uuid: str
     score: float

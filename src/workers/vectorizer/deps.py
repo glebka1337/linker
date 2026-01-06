@@ -31,10 +31,10 @@ async def assemble_vectorizer(
     Function to generate a dependecies for a VectorWorker
 
     Args:
-        resources (Resources): _description_
+        resources (Resources): mongo connection, qdrant, rabbitmq
 
     Returns:
-        VectorizerDeps: _description_
+        VectorizerDeps: dependecies to use
     """
     logger.info(f"Assembling all dependencies for vectorize worker")
     

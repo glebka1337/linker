@@ -18,6 +18,18 @@ class NoteVectorRepo(Protocol):
         treshold: Annotated[float, "Cosine similarity score"] = 0.75,
         excluded_note_uuid: Annotated[str | None, "UUID of a note vector to exclude (to avoid self relation)"] = None
     ) -> List[VectorSearchResult]:
+        """
+        Searches for similar vectors using cosine similarity
+
+        Args:
+            vector (List[float]): vector for comparing
+            limit (int, optional): Limit of output. Defaults to 10.
+            treshold (Annotated[float, &quot;Cosine similarity score&quot;], optional): _description_. Defaults to 0.75.
+            excluded_note_uuid (Annotated[str  |  None, &quot;UUID of a note vector to exclude, optional): _description_. Defaults to None.
+
+        Returns:
+            List[VectorSearchResult]: _description_
+        """
         ...
     
     async def get_vec_by_uuid(

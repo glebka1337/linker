@@ -6,8 +6,6 @@ from src.core.config import settings
 import logging
 from src.workers.vectorizer.deps import VectorWorkerDeps, assemble_vectorizer
 
-logger = logging.getLogger(__name__)
-
 class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
     
     task_schema = VectorizeTask
