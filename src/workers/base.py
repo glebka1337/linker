@@ -1,7 +1,7 @@
 # src/workers/base.py
 from abc import ABC, abstractmethod
 import logging
-from typing import Awaitable, Callable, Protocol, TypeVar, Generic, Type
+from typing import Awaitable, Callable, ClassVar, Protocol, TypeVar, Generic, Type
 from pydantic import BaseModel
 from src.core.resources import Resources, app_resource_manager
 
@@ -15,17 +15,24 @@ class BaseWorker(ABC, Generic[TaskSchemaType, DepsType]):
     
     queue_name: str
     task_schema: Type[TaskSchemaType]
+    assembler_funk: ClassVar[AssemblerFunc]
     
     def __init__(
-        self,
-        assembler_funk: AssemblerFunc
+        self
     ) -> None:
         self.logger = logging.getLogger(
             self.__class__.__name__
         )
-        self.assembler_funk = assembler_funk
         self.deps: DepsType | None = None
+    
+    def __init_subclass__(cls) -> None:
         
+        required_fields = ['queue_name', 'task_schema', 'assembler_funk']
+        cls_name = cls.__name__
+        for f in required_fields:
+            if not hasattr(cls, f):
+                raise TypeError(f"Class {cls_name} forgot to define field: {f}")
+    
     @abstractmethod
     async def process_task(
         self,
@@ -36,8 +43,9 @@ class BaseWorker(ABC, Generic[TaskSchemaType, DepsType]):
         self,
         res: Resources
     ):
-        self.logger.info(f"Start assembling deps...")
-        self.deps = await self.assembler_funk(res)
+        cls_name = self.__class__.__name__
+        self.logger.info(f"Start assembling deps {cls_name}...")
+        self.deps = await self.__class__.assembler_funk(res)
         
         self.logger.info(f"Ended succesfully")
         
