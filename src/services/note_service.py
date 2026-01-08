@@ -3,9 +3,8 @@ from src.core.config import settings
 from src.core.entities.note import NoteEntity
 from src.core.exceptions import NoteFoundError
 from src.interfaces.note_repo_interface import NoteRepo
-from src.interfaces.queue_interface import QueueService
+from src.interfaces.queue_interface import QueueServiceInterface
 from src.schemas.note import NoteCreate, NoteUpdate, VectorizeTask
-from src.services.queue_service import QueueService
 from beanie.operators import In
 import logging
 
@@ -15,10 +14,10 @@ class NoteService:
 
     def __init__(
         self,
-        queue: QueueService,
+        queue: QueueServiceInterface,
         repo: NoteRepo
     ) -> None:
-        self.queue: QueueService = queue
+        self.queue: QueueServiceInterface = queue
         self.repo: NoteRepo = repo
             
     async def create_note(

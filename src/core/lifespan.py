@@ -1,39 +1,25 @@
 from contextlib import asynccontextmanager
-from rich.console import Console
 from fastapi import FastAPI
-from src.db.mongo import (
-    init_mongo,
-    close_mongo
-)
-from src.services.queue_service import QueueService
+from src.core.resources import app_resource_manager
+from src.core.logger import setup_logging
+import logging
 
-console = Console()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
+    setup_logging()
+        
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"Creating all app resources.")
     try:
-        with console.status(
-            "[bold yellow]Establishing MongoDB connection...",
-            spinner="dots",
-        ):
-            await init_mongo()
-        
-        console.print(
-            "Connection established successfully!",
-            style="green"
-        )
-        
+        async with app_resource_manager() as resources:
+            app.state.resources = resources
+            yield
+            logger.info(f"Closing all posible connection, clients...")
+            
     except Exception as e:
-        console.print("Mongo failed to start: %s" % e, style="red bold")
-        raise 
-    
-    console.print("Connecting to queue...", style="bold yellow")
-    
-    yield 
-    
-    with console.status(
-        "[yellow italic]Closing MongoDB[/yellow italic]",
-        spinner="line"
-    ):
-        await close_mongo()
+        logger.critical(f"Error occured in a lifespan: {e}")
+        raise e
     

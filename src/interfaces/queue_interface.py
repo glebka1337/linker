@@ -4,7 +4,7 @@ from typing import (
 )
 import pydantic
 
-class QueueService(Protocol):
+class QueueServiceInterface(Protocol):
     async def send_msg(
         self, msg: pydantic.BaseModel,
         queue_name: str

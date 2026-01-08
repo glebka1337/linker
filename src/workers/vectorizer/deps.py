@@ -4,13 +4,13 @@ from src.core.resources import Resources
 from src.interfaces.model_service_interface import ModelServiceInterface
 from src.interfaces.vector_repo_interface import NoteVectorRepo
 from src.interfaces.note_repo_interface import NoteRepo
-from src.interfaces.queue_interface import QueueService
+from src.interfaces.queue_interface import QueueServiceInterface
 from src.models.note import Note as NoteDoc
 from src.core.config import settings
 from src.repos.mongo_repo import MongoRepo
 from src.repos.vector_repo import QdrantVectorRepo
 from src.services.ml_service import MLService
-from src.services.queue_service_02 import RabbitQueueService 
+from src.services.queue_service import RabbitQueueService 
 import logging
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class VectorWorkerDeps:
   note_repo: NoteRepo
   vector_repo: NoteVectorRepo
-  queue_service: QueueService
+  queue_service: QueueServiceInterface
   ml_service: ModelServiceInterface
 
 

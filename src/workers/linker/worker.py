@@ -9,11 +9,10 @@ class LinkerWorker(BaseWorker[LinkTask, LinkerDeps]):
     
     task_schema = LinkTask
     queue_name = settings.LINK_TASK_QUEUE_NAME
+    assembler_funk=assemble_linker
     
     def __init__(self) -> None:
-        super().__init__(
-            assembler_funk=assemble_linker
-        )
+        super().__init__()
     
     async def process_task(
         self,

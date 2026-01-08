@@ -10,11 +10,12 @@ class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
     
     task_schema = VectorizeTask
     queue_name = settings.VECTORIZE_TASK_QUEUE_NAME
+    assembler_funk=assemble_vectorizer
 
     def __init__(
         self
     ) -> None:
-        super().__init__(assembler_funk=assemble_vectorizer)
+        super().__init__()
         
     async def process_task(
         self,

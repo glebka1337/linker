@@ -1,0 +1,3 @@
+
+async def get_create_note_usecase():
+    ...

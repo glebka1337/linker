@@ -84,11 +84,11 @@ services:
       start_period: 15s
 
   vectorizer:
-    command: python -m src.workers.vectorizer
+    command: python -m src.workers.vectorizer.run
     <<: *workers_cfg
     
   linker:
-    command: python -m src.workers.linker
+    command: python -m src.workers.linker.run
     <<: *workers_cfg
 
 volumes:
