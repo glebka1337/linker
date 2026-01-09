@@ -1,5 +1,6 @@
 # src/workers/vectorizer/worker.py
 from dataclasses import dataclass
+
 from src.core.resources import Resources
 from src.interfaces.model_service_interface import ModelServiceInterface
 from src.interfaces.vector_repo_interface import NoteVectorRepo

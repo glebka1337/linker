@@ -8,6 +8,7 @@ from qdrant_client.http.exceptions import (
 from qdrant_client.http.models import (
     Filter, HasIdCondition, PointStruct
 )
+from qdrant_client.models import VectorParams, Distance
 from src.interfaces.vector_repo_interface import VectorSearchResult
 from src.utils.safe_exec import ErrMappingType, safe_exec
 import logging
@@ -132,3 +133,29 @@ class QdrantVectorRepo:
             
             self.logger.info(f"Deleted vector for note: uuid={note_uuid}")
             
+    async def ensure_collection(
+        self,
+        vector_size: int
+    ) -> None:
+        
+        if await self.client.collection_exists(
+            collection_name=self.collection_name
+        ):
+            self.logger.info(f"Collection {self.collection_name} already exists, skip creating.")
+            return
+        
+        self.logger.info(f"Collection {self.collection_name} does not exists, creating...")
+        
+        try:
+            
+            await self.client.create_collection(
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(
+                    distance=Distance.COSINE,
+                    size=vector_size
+                )
+            )
+            
+        except Exception as e:
+            self.logger.critical(f"Error during creating collection: {e}")
+            raise e

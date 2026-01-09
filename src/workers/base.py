@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 import logging
 from typing import Awaitable, Callable, ClassVar, Protocol, TypeVar, Generic, Type
 from pydantic import BaseModel
-from src.core.resources import Resources, app_resource_manager
+
+from src.core.resources import Resources
 
 
 DepsType = TypeVar("DepsType", covariant=True)
@@ -55,10 +56,16 @@ class BaseWorker(ABC, Generic[TaskSchemaType, DepsType]):
     ):
             
         self.logger.info("Connecting via channel to queue...")
-    
+        
+        if not resources.rabbitmq_conn:
+            msg = 'Connection to queue was not provided'
+            self.logger.critical(msg)
+            raise RuntimeError(msg)
         
         await self.setup(resources)
+        
         rabbitmq_conn = resources.rabbitmq_conn
+        
         async with rabbitmq_conn.channel() as ch:
             await ch.set_qos(prefetch_count=1)
             
