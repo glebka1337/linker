@@ -50,38 +50,39 @@ class BaseWorker(ABC, Generic[TaskSchemaType, DepsType]):
         self.logger.info(f"Ended succesfully")
         
     async def run(
-        self
+        self,
+        resources: Resources
     ):
             
         self.logger.info("Connecting via channel to queue...")
-        async with app_resource_manager() as res:
+    
+        
+        await self.setup(resources)
+        rabbitmq_conn = resources.rabbitmq_conn
+        async with rabbitmq_conn.channel() as ch:
+            await ch.set_qos(prefetch_count=1)
             
-            await self.setup(res)
-            rabbitmq_conn = res.rabbitmq_conn
-            async with rabbitmq_conn.channel() as ch:
-                await ch.set_qos(prefetch_count=1)
-                
-                que = await ch.declare_queue(
-                    self.queue_name,
-                    durable=True
-                )
-                
-                self.logger.info("Start consuming messages")
-                
-                async with que.iterator() as que_iter:
-                    async for msg in que_iter:
-                        async with msg.process():
+            que = await ch.declare_queue(
+                self.queue_name,
+                durable=True
+            )
+            
+            self.logger.info("Start consuming messages")
+            
+            async with que.iterator() as que_iter:
+                async for msg in que_iter:
+                    async with msg.process():
+                        
+                        self.logger.info(f"Starting proccessing of a task f{msg.message_id}")
+                        
+                        try:
+                            task = self.task_schema.model_validate_json(
+                                msg.body
+                            )
                             
-                            self.logger.info(f"Starting proccessing of a task f{msg.message_id}")
-                            
-                            try:
-                                task = self.task_schema.model_validate_json(
-                                    msg.body
-                                )
-                                
-                                await self.process_task(
-                                    task, 
-                                )
-                            except Exception as e:
-                                self.logger.error("Error during decoding task occured: %s" % e)
-                                raise e
+                            await self.process_task(
+                                task, 
+                            )
+                        except Exception as e:
+                            self.logger.error("Error during decoding task occured: %s" % e)
+                            raise e
