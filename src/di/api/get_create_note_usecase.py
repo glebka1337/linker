@@ -17,7 +17,7 @@ async def get_create_note_usecase(
     
     # To use vectorizer, we need a queue
     
-    queue = RabbitQueueService(conn=resources.rabbitmq_conn)
+    queue = RabbitQueueService(conn=resources.rabbitmq_conn)  # type: ignore
     
     vectorizer = Vectorizer(
         queue=queue,

@@ -2,6 +2,7 @@
 from typing import List, Protocol
 
 from src.core.entities.note import NoteEntity
+from src.schemas.note import NoteTitleProjection
 
 class NoteRepo(Protocol):
     
@@ -36,6 +37,21 @@ class NoteRepo(Protocol):
         Returns:
         
             List[NoteEntity]: Notes itself
+        """
+        ...
+    
+    async def get_titles_by_uuids(
+        self,
+        uuids: List[str]
+    ) -> List[NoteTitleProjection]:
+        """
+        Return a list of note projections, containing title and uuid
+
+        Args:
+            uuids (List[str]): uuids to search for
+
+        Returns:
+            List[NoteTitleProjection]
         """
         ...
     

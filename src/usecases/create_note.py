@@ -2,10 +2,7 @@
 from src.core.entities.note import NoteEntity
 from src.interfaces.note_repo_interface import NoteRepo
 from src.interfaces.vectorizer_interface import VectorizerInterface
-
-
 import logging
-
 from src.schemas.note import NoteCreate
 
 logger = logging.getLogger(__name__)

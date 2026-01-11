@@ -1,6 +1,7 @@
 from typing import List
 from src.core.entities.note import NoteEntity
 from pymongo.errors import PyMongoError
+from src.schemas.note import NoteTitleProjection
 from src.utils.safe_exec import safe_exec
 from typing import TypeVar, Type, Generic
 from beanie import Document
@@ -87,6 +88,26 @@ class MongoRepo(Generic[DocType]):
                     )
                     for doc in docs
                 ]
+            
+    async def get_titles_by_uuids(
+        self,
+        uuids: List[str]
+    ) -> List[NoteTitleProjection]:
+        
+        async with safe_exec(
+            err_mapping=self.err_mapping,
+            logger=logger,
+            throw=True
+        ):
+            
+            filter_q = {"uuid": {"$in": uuids}}
+            
+            results = await self.model.find(filter_q) \
+                        .project(NoteTitleProjection).to_list()
+            
+            return results
+            
+        
     async def create(
         self,
         note_data: NoteEntity
