@@ -1,7 +1,8 @@
-
 services:
   x-workers_cfg: &workers_cfg
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       RABBITMQ_HOST: rabbit_queue
       QDRANT_HOST: qdrant_db
@@ -12,19 +13,19 @@ services:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
       PYTHONPATH: /app
+      ML_SERVICE_URL: http://ml_service:8000
     networks:
       - linker_net
     volumes:
-      - ./ml_models:/app/ml_models
-      - .:/app
+      - ./src:/app/src
     depends_on:
       mongo_db:
         condition: service_healthy
-
       qdrant_db:
-        condition: service_healthy
-
+        condition: service_started
       rabbit_queue:
+        condition: service_healthy
+      ml_service:
         condition: service_healthy
 
   mongo_db:
@@ -44,7 +45,6 @@ services:
       retries: 3
       timeout: 10s
       start_period: 15s
-
 
   rabbit_queue:
     image: rabbitmq:3-management
@@ -70,18 +70,11 @@ services:
     container_name: qdrant_db
     ports:
       - 6333:6333
-      - 6334:6334
     volumes:
       - qdrant_linker_data:/qdrant/storage
-    restart: unless-stopped
     networks:
       - linker_net
-    healthcheck:
-      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/6333'"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 15s
+    
 
   vectorizer:
     command: python -m src.workers.vectorizer.run
@@ -91,10 +84,37 @@ services:
     command: python -m src.workers.linker.run
     <<: *workers_cfg
 
+  ml_service:
+    build: 
+      context: .
+      dockerfile: Dockerfile.ml
+    command: python -m ml_api_service.main
+    container_name: ml_service
+    ports:
+      - "8001:8000" 
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PYTHONPATH: /app
+      ML_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
+      ML_MODEL_DIR_PATH: /app/ml_models
+    volumes:
+      - ./ml_api_service:/app/ml_api_service
+      - ml_models_data:/app/ml_models 
+    networks:
+      - linker_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/info')"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
 volumes:
   mongo_linker_data:
   qdrant_linker_data:
   rabbit_linker_data:
+  ml_models_data:
+
 networks:
   linker_net:
     driver: bridge

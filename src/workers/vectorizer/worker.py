@@ -37,7 +37,7 @@ class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
         
         self.logger.info(f"Turn note {task.note_uuid} to vector...")
         
-        vec = await self.deps.ml_service.vectorize(
+        vec = await self.deps.ml_gateway.vectorize(
             text=note.text
         )
         

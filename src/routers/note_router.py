@@ -21,3 +21,9 @@ async def create_note(
       await create_note_usecase.execute(note_data)
     except Exception as e:
       raise HTTPException(detail="Error occured: {e}", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+  
+@rt.get('/{note_uuid}')
+async def get_note(
+    note_uuid: str,
+    get_note_usecase: ...
+): ...

@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     # Model config
     ML_MODEL_NAME: str = 'sentence-transformers/all-MiniLM-L6-v2'
     ML_MODEL_DIR_PATH: ClassVar[Path] = BASE_DIR / 'ml_models'
+    ML_SERVICE_URL: str = 'http://localhost:8000'
     
     @property
     def MONGO_DB_URL(self):

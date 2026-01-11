@@ -13,6 +13,6 @@ COPY pyproject.toml poetry.lock ./
 
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --without ml --no-root --no-interaction --no-ansi
-
+    poetry install --with ml --no-root --no-interaction --no-ansi
+    
 COPY . .
