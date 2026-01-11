@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from src.core.logger import setup_logging
 from src.core.resources import Resources
-from src.db.qdrant import qdrant_client_manager
 from src.db.mongo import mongo_beanie_manager
 from src.db.rabbit import rabbitmq_conn_manager
 

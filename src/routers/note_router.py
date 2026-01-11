@@ -5,11 +5,13 @@ from fastapi import (
     HTTPException,
     status
 )
+from src.di.api.get_update_note_usecase import get_update_note_usecase
 from src.di.api.get_get_note_usecase import get_get_note_usecase
 from src.di.api.get_create_note_usecase import get_create_note_usecase
-from src.schemas.note import NoteCreate, NoteRead
-from src.usecases.create_note import CreateNoteUseCase
+from src.schemas.note import NoteCreate, NoteRead, NoteUpdate
+from src.usecases.create_note_usecase import CreateNoteUseCase
 from src.usecases.get_note_usecase import GetNoteUseCase
+from src.usecases.update_note_usecase import UpdateNoteUseCase
 
 rt = APIRouter(
     tags=["notes", "main"]
@@ -49,4 +51,31 @@ async def get_note(
         raise HTTPException(
             500,
             "Oups! Error occured"
+        )
+        
+@rt.patch('/{note_uuid}', response_model=NoteRead)
+async def update_note(
+    note_uuid: str,
+    note_data: NoteUpdate,
+    update_note_usecase: UpdateNoteUseCase = Depends(get_update_note_usecase)
+):
+    try:
+        updated_note = await update_note_usecase.execute(note_uuid, note_data)
+        
+        if not updated_note:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Note with uuid: {note_uuid} was not found"
+            )
+            
+        return updated_note
+
+    except HTTPException as he:
+        raise he
+
+    except Exception as e:
+        logger.critical(f"Unexpected error in update_note: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
         )

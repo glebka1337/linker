@@ -3,7 +3,7 @@ from src.core.resources import Resources
 from src.schemas.note import VectorizeTask
 from src.core.config import settings
 from src.models.note import Note as NoteDoc
-from src.usecases.create_note import CreateNoteUseCase
+from src.usecases.create_note_usecase import CreateNoteUseCase
 from src.repos.mongo_repo import MongoRepo
 from src.services.queue_service import RabbitQueueService
 from src.services.vectorizer import Vectorizer
