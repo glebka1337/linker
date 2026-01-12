@@ -75,7 +75,11 @@ async def update_note(
     update_note_usecase: UpdateNoteUseCase = Depends(get_update_note_usecase)
 ):
     try:
-        updated_note = await update_note_usecase.execute(note_uuid, note_data, owner_uuid)
+        updated_note = await update_note_usecase.execute(
+            note_uuid=note_uuid,
+            note_data=note_data,
+            owner_uuid=owner_uuid
+        )
         
         if not updated_note:
             raise HTTPException(
