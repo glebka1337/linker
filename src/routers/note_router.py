@@ -5,11 +5,13 @@ from fastapi import (
     HTTPException,
     status
 )
+from src.di.api.get_all_notes_usecase import get_all_notes_usecase
 from src.di.api.get_delete_note_usecase import get_delete_note_usecase
 from src.di.api.get_update_note_usecase import get_update_note_usecase
 from src.di.api.get_get_note_usecase import get_get_note_usecase
 from src.di.api.get_create_note_usecase import get_create_note_usecase
-from src.schemas.note import NoteCreate, NoteRead, NoteUpdate
+from src.schemas.note import NoteCreate, NoteRead, NoteShortRead, NoteUpdate
+from src.usecases.get_all_notes_usecase import GetAllNotesUseCase
 from src.usecases.create_note_usecase import CreateNoteUseCase
 from src.usecases.delete_note_usecase import DeleteNoteUseCase
 from src.usecases.get_note_usecase import GetNoteUseCase
@@ -107,3 +109,13 @@ async def delete_note(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error"
         )
+        
+@rt.get('/', response_model=list[NoteShortRead]) # NoteResponse — наша схема для API
+async def get_all_notes(
+    usecase: GetAllNotesUseCase = Depends(get_all_notes_usecase)
+):
+    try:
+        return await usecase.execute()
+    except Exception as e:
+        logger.error(f"Failed to fetch notes: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
