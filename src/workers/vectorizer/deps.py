@@ -8,7 +8,7 @@ from src.interfaces.note_repo_interface import NoteRepo
 from src.interfaces.queue_interface import QueueServiceInterface
 from src.models.note import Note as NoteDoc
 from src.core.config import settings
-from src.repos.mongo_repo import MongoRepo
+from src.repos.note_mongo_repo import NoteMongoRepo
 from src.repos.vector_repo import QdrantVectorRepo
 from src.services.queue_service import RabbitQueueService 
 from src.services.ml_gateway_service import MLGatewayService
@@ -33,7 +33,7 @@ async def assemble_vectorizer(
     if not resources.rabbitmq_conn:
         raise RuntimeError("Error: can not assemble vectorizer deps without rabbitmq conn")
 
-    note_repo = MongoRepo(NoteDoc)
+    note_repo = NoteMongoRepo()
     queue_service = RabbitQueueService(conn=resources.rabbitmq_conn)
     
     httpx_client = AsyncClient(

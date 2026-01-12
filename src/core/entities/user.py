@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from pydantic import BaseModel, EmailStr, Field
 
-class User(BaseModel):
+class UserEntity(BaseModel):
     uuid: str
     username: str
     hashed_pw: str

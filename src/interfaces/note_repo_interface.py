@@ -11,7 +11,7 @@ class NoteRepo(Protocol):
     
     async def get_by_uuid(
         self, note_uuid: str, owner_uuid: str
-    ) -> Optional[NoteEntity]:
+    ) -> None | NoteEntity:
         """
         Retrieves a specific note by its UUID and owner ID.
 
@@ -20,7 +20,7 @@ class NoteRepo(Protocol):
             owner_uuid (str): The identifier of the user who owns the note.
 
         Returns:
-            Optional[NoteEntity]: The note entity if found and owned by the user, else None.
+            NoteEntity | None: The note entity if found and owned by the user, else None.
         """
         ...
     

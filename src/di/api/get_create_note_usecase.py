@@ -2,9 +2,8 @@ from fastapi import Request
 from src.core.resources import Resources
 from src.schemas.note import VectorizeTask
 from src.core.config import settings
-from src.models.note import Note as NoteDoc
 from src.usecases.create_note_usecase import CreateNoteUseCase
-from src.repos.mongo_repo import MongoRepo
+from src.repos.note_mongo_repo import NoteMongoRepo
 from src.services.queue_service import RabbitQueueService
 from src.services.vectorizer import Vectorizer
 
@@ -13,7 +12,7 @@ async def get_create_note_usecase(
 ) -> CreateNoteUseCase: # type: ignore
     # We need a repo for notes and vectorize interface
     resources: Resources = request.app.state.resources
-    note_repo = MongoRepo(model=NoteDoc)
+    note_repo = NoteMongoRepo()
     
     # To use vectorizer, we need a queue
     
