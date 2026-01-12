@@ -24,8 +24,13 @@ class UserRegister(BaseModel):
             raise ValueError("Password must contain digits")
         
         return pw
-    
-class TokenPairResponse(BaseModel):
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = 'bearer'

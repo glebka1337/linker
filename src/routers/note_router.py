@@ -11,11 +11,11 @@ from src.di.api.get_update_note_usecase import get_update_note_usecase
 from src.di.api.get_get_note_usecase import get_get_note_usecase
 from src.di.api.get_create_note_usecase import get_create_note_usecase
 from src.schemas.note import NoteCreate, NoteRead, NoteShortRead, NoteUpdate
-from src.usecases.get_all_notes_usecase import GetAllNotesUseCase
-from src.usecases.create_note_usecase import CreateNoteUseCase
-from src.usecases.delete_note_usecase import DeleteNoteUseCase
-from src.usecases.get_note_usecase import GetNoteUseCase
-from src.usecases.update_note_usecase import UpdateNoteUseCase
+from src.usecases.note.get_all_notes import GetAllNotesUseCase
+from src.usecases.note.create_note import CreateNoteUseCase
+from src.usecases.note.delete_note import DeleteNoteUseCase
+from src.usecases.note.get_note import GetNoteUseCase
+from src.usecases.note.update_note_usecase import UpdateNoteUseCase
 
 rt = APIRouter(
     tags=["notes", "main"]

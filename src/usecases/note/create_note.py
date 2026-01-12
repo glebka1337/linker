@@ -19,12 +19,14 @@ class CreateNoteUseCase:
         
     async def execute(
         self,
-        note_data: NoteCreate
+        note_data: NoteCreate,
+        owner_uuid: str
     ) -> NoteEntity: 
         
         note = NoteEntity(
             title=note_data.title,
-            text=note_data.text
+            text=note_data.text,
+            owner_uuid=owner_uuid
         )
         
         logger.info(f"Started 'create note' use case...")

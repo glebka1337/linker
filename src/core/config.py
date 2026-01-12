@@ -19,9 +19,11 @@ class Settings(BaseSettings):
     QDRANT_PORT: int = 6333
     QDRANT_COLLECTION_NAME: str = "note_vector_collection"
 
-    # JWT and secret settings
+    # JWT settings
     SECRET_KEY: str = 'super-secret-key'
     ALGORITHM: str = 'HS256'
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    REFRESH_TOKEN_EXPIRE_DAYS = 7
     
     # Rabbitmq settings
     RABBITMQ_DEFAULT_USER: str

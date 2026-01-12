@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Optional, Protocol
 
 from src.core.entities.user import UserEntity
 
@@ -25,4 +25,8 @@ class UserRepo(Protocol):
         Returns a user by email given. 
         If exists returns user entity, if not -> None
         """
+        ...
+    
+    async def get_by_username(self, username: str) -> Optional[UserEntity]:
+        """Find user by unique username."""
         ...

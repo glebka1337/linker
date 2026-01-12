@@ -2,7 +2,7 @@ from fastapi import Request
 from src.core.resources import Resources
 from src.schemas.note import VectorizeTask
 from src.core.config import settings
-from src.usecases.create_note_usecase import CreateNoteUseCase
+from src.usecases.note.create_note import CreateNoteUseCase
 from src.repos.note_mongo_repo import NoteMongoRepo
 from src.services.queue_service import RabbitQueueService
 from src.services.vectorizer import Vectorizer

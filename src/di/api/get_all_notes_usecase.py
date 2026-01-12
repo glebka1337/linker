@@ -1,5 +1,5 @@
 from src.repos.note_mongo_repo import NoteMongoRepo
-from src.usecases.get_all_notes_usecase import GetAllNotesUseCase
+from src.usecases.note.get_all_notes import GetAllNotesUseCase
 
 async def get_all_notes_usecase() -> GetAllNotesUseCase:
     repo = NoteMongoRepo()
