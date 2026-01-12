@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     # JWT settings
     SECRET_KEY: str = 'super-secret-key'
     ALGORITHM: str = 'HS256'
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
-    REFRESH_TOKEN_EXPIRE_DAYS = 7
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # Rabbitmq settings
     RABBITMQ_DEFAULT_USER: str

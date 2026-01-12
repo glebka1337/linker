@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from src.models.note import Note
+from src.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,8 @@ async def mongo_beanie_manager():
       await init_beanie(
           database=mongo_client[settings.DB_NAME], # type: ignore
           document_models=[
-              Note
+              Note,
+              User
           ]
       )
       

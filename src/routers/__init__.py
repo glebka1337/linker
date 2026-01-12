@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .note_router import rt as note_router
+from .note_router import note_router
 from .auth_router import auth_router
 
 def init_routers(app: FastAPI):
