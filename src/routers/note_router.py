@@ -5,11 +5,13 @@ from fastapi import (
     HTTPException,
     status
 )
+from src.di.api.get_delete_note_usecase import get_delete_note_usecase
 from src.di.api.get_update_note_usecase import get_update_note_usecase
 from src.di.api.get_get_note_usecase import get_get_note_usecase
 from src.di.api.get_create_note_usecase import get_create_note_usecase
 from src.schemas.note import NoteCreate, NoteRead, NoteUpdate
 from src.usecases.create_note_usecase import CreateNoteUseCase
+from src.usecases.delete_note_usecase import DeleteNoteUseCase
 from src.usecases.get_note_usecase import GetNoteUseCase
 from src.usecases.update_note_usecase import UpdateNoteUseCase
 
@@ -75,6 +77,32 @@ async def update_note(
 
     except Exception as e:
         logger.critical(f"Unexpected error in update_note: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error"
+        )
+        
+@rt.delete('/{note_uuid}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_note(
+    note_uuid: str,
+    delete_usecase: DeleteNoteUseCase = Depends(get_delete_note_usecase)
+):
+    try:
+        is_deleted = await delete_usecase.execute(note_uuid)
+        
+        if not is_deleted:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Note with uuid: {note_uuid} was not found"
+            )
+        
+        # При 204 return не нужен, или просто return None
+        return 
+
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.critical(f"Error deleting note: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error"

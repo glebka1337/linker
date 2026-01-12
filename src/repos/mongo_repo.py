@@ -107,7 +107,40 @@ class MongoRepo(Generic[DocType]):
             
             return results
             
+    async def delete(
+        self,
+        note_uuid: str
+    ) -> bool:
         
+        async with safe_exec(
+            logger=logger,
+            err_mapping=self.err_mapping,
+            throw=True
+        ):
+            note = await self.model.find_one(
+                {"uuid": note_uuid}
+            )
+            
+            if not note:
+                return False # we haven't found any note
+
+            await note.delete()
+            return True # deleted successfully
+
+    async def remove_related_links(
+        self,
+        targer_uuid: str
+    ):
+        async with safe_exec(
+            logger=logger,
+            err_mapping=self.err_mapping,
+            throw=True
+        ):
+            await self.model.get_pymongo_collection().update_many(
+                {},
+                {"$pull":{"related_notes": {"note_uuid": targer_uuid}}}
+            )
+     
     async def create(
         self,
         note_data: NoteEntity

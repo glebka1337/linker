@@ -103,4 +103,21 @@ class NoteRepo(Protocol):
         """
         ...
     
+    async def delete(
+        self,
+        note_uuid: str
+    ) -> bool:
+        """
+        Deletes note by uuid
+        Returns boolean: is a note deleted or not
+        """
+        ...
     
+    async def remove_related_links(
+        self,
+        targer_uuid: str
+    ):
+        """
+        Method to remove note uuid from related_note field
+        """
+        ...
