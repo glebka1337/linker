@@ -65,11 +65,13 @@ class NoteUpdate(BaseModel):
     text: str | None
 
 class VectorizeTask(BaseModel):
-    force_update: bool = False
     note_uuid: str
+    owner_uuid: str  
+    force_update: bool = False
 
 class LinkTask(BaseModel):
-    vector_link_treshold: float = 0.75
     note_uuid: str
+    owner_uuid: str  
     vector: list[float]
+    vector_link_treshold: float = 0.75
     

@@ -13,7 +13,8 @@ class DeleteNoteUseCase:
     
     async def execute(
         self,
-        note_uuid: str
+        note_uuid: str,
+        owner_uuid: str
     ) -> bool:
         
         """
@@ -21,7 +22,8 @@ class DeleteNoteUseCase:
         """
         # check if note exists
         note = await self.repo.get_by_uuid(
-            note_uuid
+            note_uuid,
+            owner_uuid=owner_uuid
         )
         
         if not note:
@@ -31,7 +33,8 @@ class DeleteNoteUseCase:
         # delete note
         
         is_deleted = await self.repo.delete(
-            note_uuid
+            note_uuid,
+            owner_uuid=owner_uuid
         )
         
         if not is_deleted:
@@ -41,7 +44,8 @@ class DeleteNoteUseCase:
         # delete related links
         
         await self.repo.remove_related_links(
-            targer_uuid=note_uuid
+            target_uuid=note_uuid,
+            owner_uuid=owner_uuid,
         )
         
         return True

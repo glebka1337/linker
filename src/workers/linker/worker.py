@@ -35,7 +35,8 @@ class LinkerWorker(BaseWorker[LinkTask, LinkerDeps]):
         
         # if we found similar vectors, we need to update
         target_note = await self.deps.note_repo.get_by_uuid(
-            note_uuid=task.note_uuid
+            note_uuid=task.note_uuid,
+            owner_uuid=task.owner_uuid
         )
         
         if not target_note: # that is not expected behavior!
@@ -51,7 +52,8 @@ class LinkerWorker(BaseWorker[LinkTask, LinkerDeps]):
         ]
         
         await self.deps.note_repo.update(
-            note=target_note
+            note=target_note,
+            owner_uuid=task.owner_uuid
         )
         
         self.logger.info(f"Linking of a note (uuid:{task.note_uuid}) ended successfuly")

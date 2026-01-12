@@ -19,10 +19,15 @@ class UpdateNoteUseCase:
     async def execute(
         self,
         note_uuid: str,
-        note_data: NoteUpdate
+        owner_uuid: str,
+        note_data: NoteUpdate,
+        
     ) -> NoteRead | None:
         
-        existing_note = await self.repo.get_by_uuid(note_uuid)
+        existing_note = await self.repo.get_by_uuid(
+            owner_uuid=owner_uuid,
+            note_uuid=note_uuid
+        )
         
         if not existing_note:
             return None
@@ -36,7 +41,7 @@ class UpdateNoteUseCase:
             existing_note.text = note_data.text
             text_changed = True
 
-        updated_note = await self.repo.update(existing_note)
+        updated_note = await self.repo.update(existing_note, owner_uuid=owner_uuid)
         
         if not updated_note:
             return None
@@ -46,7 +51,8 @@ class UpdateNoteUseCase:
             
             task = VectorizeTask(
                 note_uuid=note_uuid,
-                force_update=True
+                force_update=True,
+                owner_uuid=owner_uuid
             )
             
             await self.queue.send_msg(

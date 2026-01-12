@@ -1,123 +1,137 @@
-# src/interfaces/note_repo_interface.py
-from typing import List, Protocol
-
+from typing import List, Protocol, Optional
 from src.core.entities.note import NoteEntity
 from src.schemas.note import NoteTitleProjection
 
 class NoteRepo(Protocol):
+    """
+    Protocol defining the interface for note repository operations.
+    Ensures that all implementations provide multi-tenant support 
+    via owner_uuid filtering.
+    """
     
     async def get_by_uuid(
-        self, note_uuid: str
-    ) -> NoteEntity | None:
+        self, note_uuid: str, owner_uuid: str
+    ) -> Optional[NoteEntity]:
         """
-        Method to get Note by uuid
+        Retrieves a specific note by its UUID and owner ID.
 
         Args:
-            
-            note_uuid (str): note UUID
+            note_uuid (str): The unique identifier of the note.
+            owner_uuid (str): The identifier of the user who owns the note.
 
         Returns:
-        
-            NoteEntity | None: if note exists then 'Note', else None
-            DOES NOT raise any exceptions
+            Optional[NoteEntity]: The note entity if found and owned by the user, else None.
         """
         ...
     
     async def get_by_uuids(
-        self, uuids: List[str], lim: int | None
+        self, uuids: List[str], owner_uuid: str, lim: Optional[int] = None
     ) -> List[NoteEntity]:
         """
-        Returns a list of notes with uuids provided
+        Retrieves a list of notes matching the provided UUIDs and owner ID.
 
         Args:
-        
-            uuids (List[str]): UUIDs of notes
-            lim (int): limit to retrieve. If not provided, will return all related
+            uuids (List[str]): List of note UUIDs to retrieve.
+            owner_uuid (str): The identifier of the user who owns the notes.
+            lim (Optional[int]): Maximum number of notes to return.
 
         Returns:
-        
-            List[NoteEntity]: Notes itself
+            List[NoteEntity]: A list of note entities owned by the user.
         """
         ...
     
     async def get_titles_by_uuids(
         self,
-        uuids: List[str]
+        uuids: List[str],
+        owner_uuid: str
     ) -> List[NoteTitleProjection]:
         """
-        Return a list of note projections, containing title and uuid
+        Retrieves note projections (title and uuid) for a list of UUIDs.
+        Used for lightweight link resolution.
 
         Args:
-            uuids (List[str]): uuids to search for
+            uuids (List[str]): List of note UUIDs to search for.
+            owner_uuid (str): The identifier of the user who owns the notes.
 
         Returns:
-            List[NoteTitleProjection]
+            List[NoteTitleProjection]: A list of projections for owned notes.
         """
         ...
     
     async def get_all(
         self,
-        # user_id
+        owner_uuid: str
     ) -> List[NoteEntity]:
         """
-        Retrieves all notes from the database.
+        Retrieves all notes belonging to a specific user.
 
         Args:
-        
-            # user_id (str): user ID of the notes to retrieve
+            owner_uuid (str): The identifier of the user.
 
         Returns:
-        
-            List[NoteEntity]: A list of all the notes in the database.
+            List[NoteEntity]: A list of all notes owned by the user.
         """
         ...
     
     async def create(
         self, note_data: NoteEntity
     ) -> NoteEntity:
-        
         """
-        Creates a new note in the database.
+        Persists a new note entity in the database.
+        The owner_uuid must be pre-set within the note_data.
 
         Args:
-            note_data (NoteEntity): the note to be created
+            note_data (NoteEntity): The note entity to be created.
 
         Returns:
-            NoteEntity: the newly created note
+            NoteEntity: The created note entity as stored in the database.
         """
         ...
     
     async def update(
-        self, note: NoteEntity
-    ) -> NoteEntity | None: 
+        self, note: NoteEntity, owner_uuid: str
+    ) -> Optional[NoteEntity]: 
         """
-        Updates a note in the database.
+        Updates an existing note after verifying ownership.
 
         Args:
-            note (NoteEntity): the note to be updated
+            note (NoteEntity): The note entity with updated data.
+            owner_uuid (str): The identifier of the user attempting the update.
 
         Returns:
-        
-            NoteEntity | None: the updated note or none if note with uuid was not found
-            
+            Optional[NoteEntity]: The updated note entity, or None if the note 
+                                 does not exist or ownership is not verified.
         """
         ...
     
     async def delete(
         self,
-        note_uuid: str
+        note_uuid: str,
+        owner_uuid: str
     ) -> bool:
         """
-        Deletes note by uuid
-        Returns boolean: is a note deleted or not
+        Deletes a note by its UUID after verifying ownership.
+
+        Args:
+            note_uuid (str): The UUID of the note to delete.
+            owner_uuid (str): The identifier of the user attempting the deletion.
+
+        Returns:
+            bool: True if the note was successfully deleted, False otherwise.
         """
         ...
     
     async def remove_related_links(
         self,
-        targer_uuid: str
-    ):
+        target_uuid: str,
+        owner_uuid: str
+    ) -> None:
         """
-        Method to remove note uuid from related_note field
+        Removes a specific note UUID from the related_notes lists across 
+        all notes owned by the user. Used for maintaining link consistency.
+
+        Args:
+            target_uuid (str): The note UUID to be removed from references.
+            owner_uuid (str): The identifier of the user who owns the notes.
         """
         ...

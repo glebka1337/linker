@@ -29,7 +29,8 @@ class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
         
         
         note = await self.deps.note_repo.get_by_uuid(
-            task.note_uuid
+            task.note_uuid,
+            owner_uuid=task.owner_uuid
         )
         
         if not note:
@@ -52,7 +53,8 @@ class VectorWorker(BaseWorker[VectorizeTask, VectorWorkerDeps]):
         await self.deps.queue_service.send_msg(
             msg=LinkTask(
                 note_uuid=task.note_uuid,
-                vector=vec
+                vector=vec,
+                owner_uuid=task.owner_uuid
             ),
             queue_name=settings.LINK_TASK_QUEUE_NAME
         )

@@ -12,10 +12,10 @@ class GetNoteUseCase:
         self.repo = repo
     
     async def execute(
-        self, note_uuid: str
+        self, note_uuid: str, owner_uuid: str
     ) -> NoteRead | None: 
         logger.info(f"{self.__class__.__name__} searching for a note: {note_uuid} ...")
-        main_note = await self.repo.get_by_uuid(note_uuid)
+        main_note = await self.repo.get_by_uuid(note_uuid, owner_uuid)
         
         if not main_note:
             return None
@@ -30,7 +30,7 @@ class GetNoteUseCase:
             
             logger.info(f'Fetching related note titles')
 
-            related_notes = await self.repo.get_titles_by_uuids(note_uuids) # note(uuid, title)
+            related_notes = await self.repo.get_titles_by_uuids(note_uuids, owner_uuid=owner_uuid) # note(uuid, title)
             
             # to avoid double "for"
             doc_map = {n.uuid: n.title for n in related_notes}
