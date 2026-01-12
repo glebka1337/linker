@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     QDRANT_HOST: str = 'localhost' # TODO: Change when app is in docker
     QDRANT_PORT: int = 6333
     QDRANT_COLLECTION_NAME: str = "note_vector_collection"
+
+    # JWT and secret settings
+    SECRET_KEY: str = 'super-secret-key'
+    ALGORITHM: str = 'HS256'
     
     # Rabbitmq settings
     RABBITMQ_DEFAULT_USER: str

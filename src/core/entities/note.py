@@ -6,6 +6,7 @@ import uuid
 
 class NoteEntity(pydantic.BaseModel):
     uuid: str = pydantic.Field(default_factory=lambda: str(uuid.uuid4()))
+    owner_uuid: str
     title: str
     text: str
     created_at: datetime = pydantic.Field(
