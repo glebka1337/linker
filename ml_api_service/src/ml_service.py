@@ -1,6 +1,5 @@
 # ml_api_service/ml_service.py
 from pathlib import Path
-from src.core.config import settings
 from sentence_transformers import SentenceTransformer
 import asyncio
 import logging

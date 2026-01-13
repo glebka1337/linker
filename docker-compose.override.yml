@@ -1,0 +1,19 @@
+services:
+  # 1. API: Hot Reloads code changes
+  api:
+    volumes:
+      - ./src:/app/src 
+
+  # 2. Vectorizer: Hot Reloads code
+  vectorizer:
+    volumes:
+      - ./src:/app/src
+
+  # 3. Linker: Hot Reloads code
+  linker:
+    volumes:
+      - ./src:/app/src
+
+  ml_service:
+    volumes:
+      - ./ml_api_service:/app/ml_api_service

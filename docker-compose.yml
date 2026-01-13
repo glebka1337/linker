@@ -1,5 +1,6 @@
 services:
-  x-workers_cfg: &workers_cfg
+  # --- Base Configuration (DRY Principle) ---
+  x-common-config: &common_config
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,10 +15,10 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
       PYTHONPATH: /app
       ML_SERVICE_URL: http://ml_service:8000
+      SECRET_KEY: ${SECRET_KEY} 
+      ALGORITHM: "HS256"
     networks:
       - linker_net
-    volumes:
-      - ./src:/app/src
     depends_on:
       mongo_db:
         condition: service_healthy
@@ -28,6 +29,7 @@ services:
       ml_service:
         condition: service_healthy
 
+  # --- Infrastructure ---
   mongo_db:
     image: mongo:7.0
     restart: always
@@ -74,16 +76,27 @@ services:
       - qdrant_linker_data:/qdrant/storage
     networks:
       - linker_net
-    
 
+  # --- Application Services ---
+  
+  # 1. THE MAIN API (Entry Point)
+  api:
+    <<: *common_config
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+
+  # 2. Worker: Vectorizer
   vectorizer:
+    <<: *common_config
     command: python -m src.workers.vectorizer.run
-    <<: *workers_cfg
-    
-  linker:
-    command: python -m src.workers.linker.run
-    <<: *workers_cfg
 
+  # 3. Worker: Linker
+  linker:
+    <<: *common_config
+    command: python -m src.workers.linker.run
+
+  # 4. ML Microservice
   ml_service:
     build: 
       context: .
@@ -98,7 +111,6 @@ services:
       ML_MODEL_NAME: sentence-transformers/all-MiniLM-L6-v2
       ML_MODEL_DIR_PATH: /app/ml_models
     volumes:
-      - ./ml_api_service:/app/ml_api_service
       - ml_models_data:/app/ml_models 
     networks:
       - linker_net

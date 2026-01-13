@@ -10,6 +10,7 @@ class Note(Document):
     uuid: str = Field(
         default_factory=lambda: str(uuid4())
     )
+    owner_uuid: str
     title: Annotated[str, Indexed(unique=True)]
     text: str
     created_at: datetime = Field(
